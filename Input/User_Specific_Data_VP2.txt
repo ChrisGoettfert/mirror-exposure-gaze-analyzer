@@ -20,3 +20,4 @@ VP_Image:VP06_Real.png
 Fixation_Filename:fixations_on_surface_Surface 1.csv
 VP_Index:6
 Condition: Real
+Start_time: 210

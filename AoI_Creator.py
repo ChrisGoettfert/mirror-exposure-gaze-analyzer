@@ -34,6 +34,7 @@ VP_Index = 0
 userInputDictionary = {}
 middle_of_body_on_image = 0
 Condition = ""
+start_time = 0
 
 # Reads all necessary data from a txt file about the User and the Environment
 # Read from txt file and convert it to a dictionary
@@ -56,7 +57,7 @@ def updateUserVariables(userInputDictionary, input_file):
 
     global distance_mirror_to_ground, distance_user_to_mirror, image_height_in_cm, image_width_in_cm, user_width, \
         user_height, eye_height, head_height, head_width, hands_height, hands_width, VP_Image, middle_of_body_on_image, Fixation_FileName,\
-        VP_Index, feet_height, feet_width, Condition
+        VP_Index, feet_height, feet_width, Condition, start_time
 
     for key in userInputDictionary:
         if(key == 'Distance_Mirror_Ground'):
@@ -93,6 +94,8 @@ def updateUserVariables(userInputDictionary, input_file):
             Fixation_FileName = userInputDictionary.get(key)
         if (key == 'Condition'):
             Condition = userInputDictionary.get(key)
+        if (key == 'Start_time'):
+            start_time = userInputDictionary.get(key)
         if (key == 'VP_Index'):
             VP_Index = int(userInputDictionary.get(key))
             # Create Results dir and folder for every VP
@@ -277,4 +280,4 @@ normalizeBoundingBoxPositions(boundingBoxes)
 
 
 # Call Fixation Detector with Bounding Boxes
-Fixation_Calculator.startFixationCalculationOnBoundingBoxes(Fixation_FileName, boundingBoxes, VP_Image, image_with_bb, VP_Index)
+Fixation_Calculator.startFixationCalculationOnBoundingBoxes(Fixation_FileName, boundingBoxes, VP_Image, image_with_bb, VP_Index, start_time)

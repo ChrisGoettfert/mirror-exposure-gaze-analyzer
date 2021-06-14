@@ -187,7 +187,7 @@ def CalculateAverageErrorToBoundingBoxes(df, boundingBox, boundingBoxName):
 
 
 
-def startFixationCalculationOnBoundingBoxes(filename, boundingboxes, image, image_with_bb, VP_Index):
+def startFixationCalculationOnBoundingBoxes(filename, boundingboxes, image, image_with_bb, VP_Index, start_time):
     average_Errors = []
     fixationsInTimePhases = []
     image = "Input\\" + image
@@ -196,7 +196,7 @@ def startFixationCalculationOnBoundingBoxes(filename, boundingboxes, image, imag
     print(os.path.dirname(os.path.realpath(__file__)))
     df, x, y = readInFixationData(filename)
     results_list, df  = calculateFixationsOnAoIs(boundingboxes, df, AoI_Fixation_Lists)
-    df_all, dfExplo1, dfHead, dfRightHand, dfLeftHand, dfFeet, dfExplo2 = SplitDataframesByTimeStamps(df)
+    df_all, dfExplo1, dfHead, dfRightHand, dfLeftHand, dfFeet, dfExplo2 = SplitDataframesByTimeStamps(df, start_time)
     average_Errors.append(["Head", CalculateAverageErrorToBoundingBoxes(dfHead, boundingboxes, "head")])
     average_Errors.append(["RightHand", CalculateAverageErrorToBoundingBoxes(dfRightHand, boundingboxes, "right_hand")])
     average_Errors.append(["LeftHand", CalculateAverageErrorToBoundingBoxes(dfLeftHand, boundingboxes, "left_hand")])
@@ -220,8 +220,8 @@ def startFixationCalculationOnBoundingBoxes(filename, boundingboxes, image, imag
     Scatterplot_on_Image.drawScatterplotOnImage(dfExplo1, image, image_with_bb, VP_Index, "Explo1")
     Scatterplot_on_Image.drawScatterplotOnImage(dfExplo2, image, image_with_bb, VP_Index, "Explo2")
 
-def SplitDataframesByTimeStamps(df):
-    starttime = 214
+def SplitDataframesByTimeStamps(df, start_time):
+    starttime = start_time
     dfExplo1 = None
     dfHead = None
     dfRightHand = None
@@ -252,7 +252,7 @@ def SplitDataframesByTimeStamps(df):
 
 
 if __name__ == '__main__':
-    print("Hallo")
+    print()
 
 
 
