@@ -101,9 +101,10 @@ def calculateFixationsOnAoIs(boundingBoxes, df, AoI_Fixation_Lists):
 
 
 
-def saveResultsInLogFile(results_list, image_with_bb, average_errors, fixationsInTimePhases):
+def saveResultsInLogFile(results_list, image_with_bb, average_errors, fixationsInTimePhases, dfExplo1, dfExplo2):
     # get path of result folder
     result_folder = os.path.dirname(image_with_bb)
+    dfexplo1res, dfexplo2res = explorationPhaseDataProcessing(dfExplo1, dfExplo2)
     with open(result_folder + '\\Overallresults.txt', 'w') as f:
         for item in results_list:
             f.write("%s\n" % item)
@@ -115,9 +116,22 @@ def saveResultsInLogFile(results_list, image_with_bb, average_errors, fixationsI
         f.write("Fixations During Phases: " + "\n")
         for item3 in fixationsInTimePhases:
             f.write("%s\n" % item3)
+        f.write("\n")
+        f.write("Explo1: " + "\n")
+        f.write("%s\n" % dfexplo1res)
+        f.write("\n")
+        f.write("Explo2: " + "\n")
+
+        f.write("%s\n" % dfexplo2res)
     print(result_folder)
 
-
+def explorationPhaseDataProcessing(dfExplo1, dfExplo2):
+    dfExplo1 = dfExplo1.fillna("Not in any bb")
+    dfExplo1res = dfExplo1.pivot_table(index=['AoI'], aggfunc='size')
+    dfExplo2 = dfExplo2.fillna("Not in any bb")
+    dfExplo2res = dfExplo2.pivot_table(index=['AoI'], aggfunc='size')
+    print(dfExplo1res)
+    return dfExplo1res, dfExplo2res
 def createHeatmapOnImage(x, y, feature_width, image, image_with_bb, VP_Index):
     # Construct 2D histogram from data using the 'plasma' colormap
     plt.hist2d(x, y, bins=15, range= [[0, 1], [0,1]], density=True, cmap='plasma')
@@ -187,6 +201,7 @@ def CalculateAverageErrorToBoundingBoxes(df, boundingBox, boundingBoxName):
 
 
 
+
 def startFixationCalculationOnBoundingBoxes(filename, boundingboxes, image, image_with_bb, VP_Index, start_time):
     average_Errors = []
     fixationsInTimePhases = []
@@ -210,7 +225,7 @@ def startFixationCalculationOnBoundingBoxes(filename, boundingboxes, image, imag
     feetFixations = calculateFixationsWithTimestamps(dfFeet, boundingboxes, "feet")
 
     fixationsInTimePhases.extend([[headFixations], [rightHandFixations], [leftHandFixations], [feetFixations]])
-    saveResultsInLogFile(results_list, image_with_bb, average_Errors, fixationsInTimePhases)
+    saveResultsInLogFile(results_list, image_with_bb, average_Errors, fixationsInTimePhases, dfExplo1, dfExplo2)
     createHeatmapOnImage(x, y, 0.33, image, image_with_bb, VP_Index)
     Scatterplot_on_Image.drawScatterplotOnImage(df, image, image_with_bb, VP_Index, "All")
     Scatterplot_on_Image.drawScatterplotOnImage(dfHead, image, image_with_bb, VP_Index, "Head")
@@ -244,7 +259,7 @@ def SplitDataframesByTimeStamps(df, start_time):
     dfExplo2 = df.loc[maskExplo2]
 
 
-    return df_all, dfExplo1, dfHead, dfRightHand, dfLeftHand, dfFeet, dfExplo2
+    return df_all, dfExplo1, dfHead, dfLeftHand, dfRightHand, dfFeet, dfExplo2
 
 
 
