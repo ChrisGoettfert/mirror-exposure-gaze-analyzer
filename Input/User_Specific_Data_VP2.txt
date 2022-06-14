@@ -5,19 +5,19 @@ Mirror_Height:112
 Mirror_Width:59.3
 
 # User
-User_Height:168
-User_Width:30
+User_Height:163
+User_Width: 18
 Eye_Height:153
-Head_Height: 148
-Head_Width: 10
-Hands_Height:66
-Hands_Width: 10
-Feet_Height: 5
-Feet_Width: 15
+Head_Height: 141
+Head_Width: 15
+Hands_Height: 64
+Hands_Width: 8
+Feet_Height: 0
+Feet_Width: 18
 
 # Other
-VP_Image:VP06_Real.png
+VP_Image:VP02_Real.png
 Fixation_Filename:fixations_on_surface_Surface 1.csv
-VP_Index:6
+VP_Index:2
 Condition: Real
-Start_time: 210
+Start_time: 180

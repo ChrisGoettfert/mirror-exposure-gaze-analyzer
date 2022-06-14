@@ -35,6 +35,8 @@ userInputDictionary = {}
 middle_of_body_on_image = 0
 Condition = ""
 start_time = 0
+scale_f_h = 0
+scale_f_w = 0
 
 # Reads all necessary data from a txt file about the User and the Environment
 # Read from txt file and convert it to a dictionary
@@ -177,20 +179,20 @@ def createVisualBoundingBoxesOnImage(image, VP_Index, vp_dir, AoI_Heights_in_px,
         # Rectangle( bottom left point X, Top left point Y,
         #              width, height, color, filling, label)
         # calculated one
-        patches.Rectangle((0.5 * imageWidth_in_pixels - 0.5 * AoI_Widths_in_px[0] - 10, AoI_Heights_in_px[0] + 34),
-                          AoI_Widths_in_px[0], 55, edgecolor='r', facecolor="none", label="head"),
+        patches.Rectangle((0.5 * imageWidth_in_pixels - (AoI_Widths_in_px[0] * 0.5), AoI_Heights_in_px[0]),
+                          AoI_Widths_in_px[0], 23 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="head"),
 
         # right hand
-        patches.Rectangle((0.5 * imageWidth_in_pixels - 0.5 * user_width_px - 8, AoI_Heights_in_px[1] + 65),
-                          AoI_Widths_in_px[1] - 5, 40, edgecolor='r', facecolor="none", label="right_hand"),
+        patches.Rectangle((0.5 * imageWidth_in_pixels - ((AoI_Widths_in_px[3] + 30) * 0.5), AoI_Heights_in_px[1]),
+                          AoI_Widths_in_px[1], 19 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="right_hand"),
 
         # left hand
-        patches.Rectangle((0.5 * imageWidth_in_pixels + 0.5 * user_width_px - 37, AoI_Heights_in_px[1] + 65),
-                          AoI_Widths_in_px[1] - 5, 40, edgecolor='r', facecolor="none", label="left_hand"),
+        patches.Rectangle((0.5 * imageWidth_in_pixels + ((AoI_Widths_in_px[3] - 30) * 0.5), AoI_Heights_in_px[1]),
+                          AoI_Widths_in_px[1], 19 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="left_hand"),
 
         # Feet
-        patches.Rectangle((0.5 * imageWidth_in_pixels - 0.5 * AoI_Widths_in_px[2] - 24, AoI_Heights_in_px[2] + 40),
-                          AoI_Widths_in_px[2] + 48, 50, edgecolor='r', facecolor="none", label="feet"),
+        patches.Rectangle((0.5 * (imageWidth_in_pixels - AoI_Widths_in_px[2]), AoI_Heights_in_px[2]),
+                          AoI_Widths_in_px[2], 23 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="feet"),
 
         # Full Width
         # patches.Rectangle((0.15, 200), imageWidth_in_pixels, -50, edgecolor='r', facecolor="none", label="fullwidth"),
@@ -208,6 +210,7 @@ def createVisualBoundingBoxesOnImage(image, VP_Index, vp_dir, AoI_Heights_in_px,
         ax.add_patch(rects)
         boundingBoxes.append([rects.get_label(), rects.get_bbox()])
         print("Name of created Area of Interest: " + rects.get_label())
+        print('{0} height px: {1} and width: {2}'.format(rects.get_label(),rects.get_height(), rects.get_width()))
 
     ax.imshow(image)
 
@@ -225,9 +228,12 @@ def createVisualBoundingBoxesOnImage(image, VP_Index, vp_dir, AoI_Heights_in_px,
     return boundingBoxes, image_with_bb, rectangles
 
 def calculateHeightsForAreaOfInterestPositions(image_height, mirror_height, eye_height_in_px, eye_height, head_height, hands_height, feet_height):
+    global scale_f_h
     AoI_Positions = []
     # Calculate the scaling Factor. => 1CM in the real world equal x px on the Image
     scaling_factor = image_height / mirror_height
+    scale_f_h = scaling_factor
+    print("Scaling factor height : " + str(scaling_factor))
     # Calculate centimeter differences of the AoIs always from eyes
     diff_eye_head = eye_height - head_height
     diff_eye_hands = eye_height - hands_height
@@ -244,16 +250,20 @@ def calculateHeightsForAreaOfInterestPositions(image_height, mirror_height, eye_
     AoI_Positions.extend([ head_height_px, hands_height_px, feet_height_px])
 
     return AoI_Positions
-def calculateWidthsForAreaOfInterestPositions(image_width, mirror_width, head_width, hands_width,  feet_width):
+def calculateWidthsForAreaOfInterestPositions(image_width, mirror_width, head_width, hands_width,  feet_width, user_width):
+    global scale_f_w
     AoI_Width_Positions = []
     # Calculate scaling factor
     scaling_factor = image_width / mirror_width
+    scale_f_w = scaling_factor
+    print("Scaling factor w : " + str(scaling_factor))
     # Calculate width of the AoI all in Pxs
     head_width = head_width * scaling_factor
     hands_width = hands_width * scaling_factor
     feet_width = feet_width * scaling_factor
+    user_width = user_width * scaling_factor
     # Add to array
-    AoI_Width_Positions.extend([head_width, hands_width, feet_width])
+    AoI_Width_Positions.extend([head_width, hands_width, feet_width, user_width])
 
     return AoI_Width_Positions
 def normalizeBoundingBoxPositions(boundingBoxes):
@@ -273,7 +283,7 @@ eye_height_in_px = calculateCentimetersToPixels(eye_height - distance_mirror_to_
 AoI_Heights_in_px = calculateHeightsForAreaOfInterestPositions(imageHeight_in_pixels, image_height_in_cm, eye_height_in_px,
                                                                eye_height, head_height, hands_height, feet_height)
 AoI_Widths_in_px = calculateWidthsForAreaOfInterestPositions(imageWidth_in_pixels, image_width_in_cm, head_width,
-                                                             hands_width, feet_width)
+                                                             hands_width, feet_width, user_width)
 
 boundingBoxes, image_with_bb, rectangles = createVisualBoundingBoxesOnImage(image, VP_Index, vp_result_dir, AoI_Heights_in_px, AoI_Widths_in_px)
 normalizeBoundingBoxPositions(boundingBoxes)
