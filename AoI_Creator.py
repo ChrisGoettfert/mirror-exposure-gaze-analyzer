@@ -180,19 +180,21 @@ def createVisualBoundingBoxesOnImage(image, VP_Index, vp_dir, AoI_Heights_in_px,
         #              width, height, color, filling, label)
         # calculated one
         patches.Rectangle((0.5 * imageWidth_in_pixels - (AoI_Widths_in_px[0] * 0.5), AoI_Heights_in_px[0]),
-                          AoI_Widths_in_px[0], 23 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="head"),
+                          AoI_Widths_in_px[0], 22 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="head"),
 
         # right hand
-        patches.Rectangle((0.5 * imageWidth_in_pixels - ((AoI_Widths_in_px[3] + 30) * 0.5), AoI_Heights_in_px[1]),
-                          AoI_Widths_in_px[1], 19 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="right_hand"),
+        patches.Rectangle((0.5 * imageWidth_in_pixels - ((AoI_Widths_in_px[3] + 30) * 0.5), AoI_Heights_in_px[1] + (22 * scale_f_h * 0.5) * 0.5),
+                          AoI_Widths_in_px[1], 17 * scale_f_h * 0.5, edgecolor='r', facecolor="none",
+                          label="right_hand"),
 
         # left hand
-        patches.Rectangle((0.5 * imageWidth_in_pixels + ((AoI_Widths_in_px[3] - 30) * 0.5), AoI_Heights_in_px[1]),
-                          AoI_Widths_in_px[1], 19 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="left_hand"),
+        patches.Rectangle((0.5 * imageWidth_in_pixels + ((AoI_Widths_in_px[3] - 30) * 0.5), AoI_Heights_in_px[1] + (22 * scale_f_h * 0.5) * 0.5),
+                          AoI_Widths_in_px[1], 17 * scale_f_h * 0.5, edgecolor='r', facecolor="none",
+                          label="left_hand"),
 
         # Feet
         patches.Rectangle((0.5 * (imageWidth_in_pixels - AoI_Widths_in_px[2]), AoI_Heights_in_px[2]),
-                          AoI_Widths_in_px[2], 23 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="feet"),
+                          AoI_Widths_in_px[2], 22 * scale_f_h * 0.5, edgecolor='r', facecolor="none", label="feet"),
 
         # Full Width
         # patches.Rectangle((0.15, 200), imageWidth_in_pixels, -50, edgecolor='r', facecolor="none", label="fullwidth"),
@@ -202,6 +204,7 @@ def createVisualBoundingBoxesOnImage(image, VP_Index, vp_dir, AoI_Heights_in_px,
         # patches.Rectangle((0.1,600), imageWidth_in_pixels, 50, edgecolor='r', facecolor="none")
 
     ]
+
     boundingBoxes = []
     # Draw Rectangle on to the image
     # Add Boundingbox Position information for later usage
