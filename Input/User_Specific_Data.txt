@@ -1,0 +1,23 @@
+# Environment
+Distance_Mirror_Ground:69
+Distance_User_Mirror:140
+Mirror_Height:112
+Mirror_Width:59.3
+
+# User
+User_Height:173
+User_Width: 18
+Eye_Height:163
+Head_Height: 151
+Head_Width: 15
+Hands_Height: 64
+Hands_Width: 8
+Feet_Height: 0
+Feet_Width: 18
+
+# Other
+VP_Image:VP03_Real.png
+Fixation_Filename:fixations_on_surface_Surface 1.csv
+VP_Index:3
+Condition: Real
+Start_time: 220

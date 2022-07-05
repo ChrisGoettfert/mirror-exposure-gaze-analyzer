@@ -1,18 +1,11 @@
 import os
 import shutil
 from random import randrange
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.image as mpimg
 import Fixation_Calculator
 
-
-# We use this function to normalize our Positions in the Real World e.g. CM to be the exact same on Pixel Coordinates
-# IMPORTANT: For this to work, our Original Picture must always be the same size, if we Focus on our Mirror
-# it should be 200cm x 50cm
-
-#import FixationCorrector
 
 # Class Variables
 distance_mirror_to_ground = 0
@@ -28,38 +21,38 @@ hands_height = 0
 hands_width = 0
 feet_height = 0
 feet_width = 0
-VP_Image = ""
-Fixation_FileName = ""
-VP_Index = 0
-userInputDictionary = {}
+vp_image = ""
+fixation_filename = ""
+vp_Index = 0
+user_input_dictionary = {}
 middle_of_body_on_image = 0
-Condition = ""
+condition = ""
 start_time = 0
 scale_f_h = 0
 scale_f_w = 0
 
 # Reads all necessary data from a txt file about the User and the Environment
 # Read from txt file and convert it to a dictionary
-def readInUserSpecificData(user_specific_data):
+def read_in_user_specific_data(user_specific_data):
     d = {}
     with open(user_specific_data) as f:
         for line in f:
-            line = line.replace('\n','')   # Remove useless stuff
-            if('#' in line or line is ''):                   # Only relevant lines should taken into account
+            line = line.replace('\n','')
+            if('#' in line or line is ''):   # Only relevant lines should taken into account
                 continue
             (key, val) = line.split(':')
-            if(key == 'VP_Image' or key == 'Fixation_Filename' or key == 'Condition'):           # cant convert string to int so do it alone
+            if(key == 'VP_Image' or key == 'Fixation_Filename' or key == 'Condition'): # convert strings
                 d[key] = val
                 continue
             d[key] = float(val)
     return d, user_specific_data
 
 # Sets the class variables needed for the calculation to the specific user data from the txt file
-def updateUserVariables(userInputDictionary, input_file):
+def update_user_variable(userInputDictionary):
 
     global distance_mirror_to_ground, distance_user_to_mirror, image_height_in_cm, image_width_in_cm, user_width, \
-        user_height, eye_height, head_height, head_width, hands_height, hands_width, VP_Image, middle_of_body_on_image, Fixation_FileName,\
-        VP_Index, feet_height, feet_width, Condition, start_time
+        user_height, eye_height, head_height, head_width, hands_height, hands_width, vp_image, middle_of_body_on_image, fixation_filename,\
+        vp_Index, feet_height, feet_width, condition, start_time
 
     for key in userInputDictionary:
         if(key == 'Distance_Mirror_Ground'):
@@ -68,6 +61,7 @@ def updateUserVariables(userInputDictionary, input_file):
             distance_user_to_mirror = userInputDictionary.get(key)
         if(key == 'Mirror_Height'):
             image_height_in_cm = userInputDictionary.get(key)
+            middle_of_body_on_image = int(image_height_in_cm / 2)
         if (key == 'Mirror_Width'):
             image_width_in_cm = userInputDictionary.get(key)
         if (key == 'User_Height'):
@@ -91,33 +85,31 @@ def updateUserVariables(userInputDictionary, input_file):
         if (key == 'Feet_Height'):
             feet_height = userInputDictionary.get(key)
         if (key == 'VP_Image'):
-            VP_Image = userInputDictionary.get(key)
+            vp_image = userInputDictionary.get(key)
         if (key == 'Fixation_Filename'):
-            Fixation_FileName = userInputDictionary.get(key)
+            fixation_filename = userInputDictionary.get(key)
         if (key == 'Condition'):
-            Condition = userInputDictionary.get(key)
+            condition = userInputDictionary.get(key)
         if (key == 'Start_time'):
             start_time = userInputDictionary.get(key)
         if (key == 'VP_Index'):
-            VP_Index = int(userInputDictionary.get(key))
-            # Create Results dir and folder for every VP
-            current_dir = os.getcwd()
-            result_dir = os.path.join(current_dir, r'Results')
-            if not os.path.exists(result_dir):
-                os.makedirs(result_dir)
-            vp_index = "VP" + str(VP_Index)
-            vp_dir = os.path.join(result_dir, vp_index)
-            if os.path.exists(vp_dir):
-                random_num = str(randrange(0,10000))
-                os.makedirs(vp_dir + "_duplicate_" + random_num)
-                vp_dir = result_dir + "\\" + vp_index + "_duplicate_" + random_num
-                print(vp_dir)
-            else:
-                os.makedirs(vp_dir)
-            # Copy input txt file and move to results folder
-            shutil.copy(input_file, vp_dir + "\\user_specific_data.txt")
+            vp_Index = int(userInputDictionary.get(key))
 
-        middle_of_body_on_image = int(image_height_in_cm / 2)
+# Create Results dir and folder for every VP
+def create_results_folder(vp_index, input_file):
+    result_dir = os.path.join(os.getcwd(), r'Results')
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    vp_index = "VP" + str(vp_index)
+    vp_dir = os.path.join(result_dir, vp_index)
+    if os.path.exists(vp_dir): # quick fix to prevent overwriting existings folders
+        random_num = str(randrange(0,100000))
+        os.makedirs(vp_dir + "_duplicate_" + random_num)
+        vp_dir = result_dir + "\\" + vp_index + "_duplicate_" + random_num
+    else:
+        os.makedirs(vp_dir)
+    # Copy input txt file and move to results folder
+    shutil.copy(input_file, vp_dir)
     return vp_dir
 
 # calculate cm values to pixel values
@@ -130,13 +122,11 @@ def calculateCentimetersToPixels(value, isHeight):
     else:
         width_in_pixel = imageWidth_in_pixels / image_width_in_cm * value
         return width_in_pixel
-def readInUserImage():
-    # read in image
-    im = mpimg.imread("Input\\" + VP_Image)
-    #im = cv2.imread(VP_Image)
-    flip = im[::-1,:,:]
-    #plt.imshow(flip[:, :, :]), plt.title('flip vertical with inverted y-axis'), plt.gca().invert_yaxis(), plt.show()
 
+def read_in_user_image():
+    # read in image
+    im = mpimg.imread("Input\\" + vp_image)
+    flip = im[::-1,:,:]
     # get width and height of the picture
     imageWidth_in_pixels = im.shape[1]
     imageHeight_in_pixels = im.shape[0]
@@ -222,12 +212,12 @@ def createVisualBoundingBoxesOnImage(image, VP_Index, vp_dir, AoI_Heights_in_px,
     ax.set_ylim(imageHeight_in_pixels, 0)
     plt.imshow(image[:, :, :]), plt.title('BoundingBoxes on Image'), plt.gca().invert_yaxis()
     print(os.path.join(vp_dir,
-                             Condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png"))
+                       condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png"))
     plt.savefig(os.path.join(vp_dir,
-                             Condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png"))
+                             condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png"))
     plt.show()
 
-    image_with_bb = os.path.join(vp_dir, Condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png")
+    image_with_bb = os.path.join(vp_dir, condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png")
     return boundingBoxes, image_with_bb, rectangles
 
 def calculateHeightsForAreaOfInterestPositions(image_height, mirror_height, eye_height_in_px, eye_height, head_height, hands_height, feet_height):
@@ -278,19 +268,22 @@ def normalizeBoundingBoxPositions(boundingBoxes):
         bb[1].y1 = bb[1].y1 / imageHeight_in_pixels
 
     return boundingBoxes
-# read in user specific data and update variables with new data
-userInputDictionary, input_file = readInUserSpecificData('Input\\User_Specific_Data_VP2.txt')
-vp_result_dir = updateUserVariables(userInputDictionary, input_file)
-imageHeight_in_pixels, imageWidth_in_pixels, image = readInUserImage()
+
+
+# Start of pipeline
+user_input_dictionary, input_file = read_in_user_specific_data('Input\\User_Specific_Data.txt')
+update_user_variable(user_input_dictionary)
+vp_result_dir = create_results_folder(vp_Index, input_file)
+imageHeight_in_pixels, imageWidth_in_pixels, image = read_in_user_image()
 eye_height_in_px = calculateCentimetersToPixels(eye_height - distance_mirror_to_ground, True)
 AoI_Heights_in_px = calculateHeightsForAreaOfInterestPositions(imageHeight_in_pixels, image_height_in_cm, eye_height_in_px,
                                                                eye_height, head_height, hands_height, feet_height)
 AoI_Widths_in_px = calculateWidthsForAreaOfInterestPositions(imageWidth_in_pixels, image_width_in_cm, head_width,
                                                              hands_width, feet_width, user_width)
 
-boundingBoxes, image_with_bb, rectangles = createVisualBoundingBoxesOnImage(image, VP_Index, vp_result_dir, AoI_Heights_in_px, AoI_Widths_in_px)
+boundingBoxes, image_with_bb, rectangles = createVisualBoundingBoxesOnImage(image, vp_Index, vp_result_dir, AoI_Heights_in_px, AoI_Widths_in_px)
 normalizeBoundingBoxPositions(boundingBoxes)
 
 
 # Call Fixation Detector with Bounding Boxes
-Fixation_Calculator.startFixationCalculationOnBoundingBoxes(Fixation_FileName, boundingBoxes, VP_Image, image_with_bb, VP_Index, start_time)
+Fixation_Calculator.startFixationCalculationOnBoundingBoxes(fixation_filename, boundingBoxes, vp_image, image_with_bb, vp_Index, start_time)
