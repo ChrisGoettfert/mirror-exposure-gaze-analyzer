@@ -214,7 +214,7 @@ def create_scatterplots_on_image(df_all, image, image_with_bb, vp_index):
                                                                                               "Explorative2"]]
 
     for i in iterator:
-        Scatterplot_on_Image.drawScatterplotOnImage(i[0], image, image_with_bb, vp_index, i[1])
+        Scatterplot_on_Image.draw_scatterplot_on_image(i[0], image, image_with_bb, vp_index, i[1])
 
 
 def start_fixation_calculation(fixations_filename, boundingboxes, image, image_with_bb, vp_index,
