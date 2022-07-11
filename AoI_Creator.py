@@ -6,29 +6,8 @@ import matplotlib.patches as patches
 import matplotlib.image as mpimg
 import Fixation_Calculator
 
+
 # Class Variables
-distance_mirror_to_ground = 0
-distance_user_to_mirror = 0
-image_height_in_cm = 0
-image_width_in_cm = 0
-user_height = 0
-user_width = 0
-head_height = 0
-head_width = 0
-eye_height = 0
-hands_height = 0
-hands_width = 0
-feet_height = 0
-feet_width = 0
-vp_image = ""
-fixation_filename = ""
-vp_Index = 0
-user_input_dictionary = {}
-middle_of_body_on_image = 0
-condition = ""
-start_time = 0
-scaling_factor_height = 0
-scale_f_w = 0
 
 
 # Reads all necessary data from a txt file about the User and the Environment
@@ -44,56 +23,11 @@ def read_in_user_specific_data(user_specific_data):
             if (key == 'VP_Image' or key == 'Fixation_Filename' or key == 'Condition'):  # convert strings
                 d[key] = val
                 continue
+            if (key == "Eye_Height"):
+                d[key] = float(val) + 2  # Since the Camera is slightly above the eye we need to
+                continue  # add a small amount to the eye height to fit the BoundingBox on the Eyes
             d[key] = float(val)
     return d, user_specific_data
-
-
-# Sets the class variables needed for the calculation to the specific user data from the txt file
-def update_user_variable(userInputDictionary):
-    global distance_mirror_to_ground, distance_user_to_mirror, image_height_in_cm, image_width_in_cm, user_width, \
-        user_height, eye_height, head_height, head_width, hands_height, hands_width, vp_image, middle_of_body_on_image, fixation_filename, \
-        vp_Index, feet_height, feet_width, condition, start_time
-
-    for key in userInputDictionary:
-        if (key == 'Distance_Mirror_Ground'):
-            distance_mirror_to_ground = userInputDictionary.get(key)
-        if (key == 'Distance_User_Mirror'):
-            distance_user_to_mirror = userInputDictionary.get(key)
-        if (key == 'Mirror_Height'):
-            image_height_in_cm = userInputDictionary.get(key)
-            middle_of_body_on_image = int(image_height_in_cm / 2)
-        if (key == 'Mirror_Width'):
-            image_width_in_cm = userInputDictionary.get(key)
-        if (key == 'User_Height'):
-            user_height = userInputDictionary.get(key)
-        if (key == 'User_Width'):
-            user_width = userInputDictionary.get(key)
-        if (key == 'Eye_Height'):
-            # Since the Camera is slightly above the eye we need to add a small amount to the eye height to fit the
-            # BoundingBox on the Eyes
-            eye_height = userInputDictionary.get(key) + 2
-        if (key == 'Head_Height'):
-            head_height = userInputDictionary.get(key)
-        if (key == 'Head_Width'):
-            head_width = userInputDictionary.get(key)
-        if (key == 'Hands_Height'):
-            hands_height = userInputDictionary.get(key)
-        if (key == 'Hands_Width'):
-            hands_width = userInputDictionary.get(key)
-        if (key == 'Feet_Width'):
-            feet_width = userInputDictionary.get(key)
-        if (key == 'Feet_Height'):
-            feet_height = userInputDictionary.get(key)
-        if (key == 'VP_Image'):
-            vp_image = userInputDictionary.get(key)
-        if (key == 'Fixation_Filename'):
-            fixation_filename = userInputDictionary.get(key)
-        if (key == 'Condition'):
-            condition = userInputDictionary.get(key)
-        if (key == 'Start_time'):
-            start_time = userInputDictionary.get(key)
-        if (key == 'VP_Index'):
-            vp_Index = int(userInputDictionary.get(key))
 
 
 # Create Results dir and folder for every VP
@@ -115,32 +49,39 @@ def create_results_folder(vp_index, input_file):
 
 
 # transform the measured centimeter values to pixel values on our reference image
-def transform_centimeters_to_pixels(value, isHeight):
+def transform_centimeters_to_pixels(value, image_height_in_cm, image_height_in_px, image_width_in_cm, image_width_in_px,
+                                    isHeight):
     if (value is 0):
         return
     if (isHeight):
-        height_in_pixel = imageHeight_in_pixels / image_height_in_cm * value
-        print(imageHeight_in_pixels / image_height_in_cm)
+        height_in_pixel = image_height_in_px / image_height_in_cm * value
+        print(image_height_in_px / image_height_in_cm)
         return height_in_pixel
     else:
-        width_in_pixel = imageWidth_in_pixels / image_width_in_cm * value
+        width_in_pixel = image_width_in_px / image_width_in_cm * value
         return width_in_pixel
 
 
 def read_in_user_image():
     # read in image
-    img = mpimg.imread("Input\\" + vp_image)
-    flip = img[::-1, :, :]  # flip image as it makes later calculations easier
+    img = mpimg.imread("Input\\" + user_input_dictionary["VP_Image"])
     # get width and height of the picture
     imageWidth_in_pixels = img.shape[1]
     imageHeight_in_pixels = img.shape[0]
     print("Picture Width: " + str(imageWidth_in_pixels) + " Height: " + str(imageHeight_in_pixels))
 
-    return imageHeight_in_pixels, imageWidth_in_pixels, img  # flip
+    return imageHeight_in_pixels, imageWidth_in_pixels, img
+
+    # check in user specific data maybe?
+    # and add them but
+
+
+def add_all_areas_of_interest_position_values_to_list():
+    pass
 
 
 # Visualize bounding boxes on the reference image
-def create_visual_bounding_boxes_on_image(image, VP_Index, vp_dir, AoI_Heights_in_px, AoI_Widths_in_px):
+def create_visual_bounding_boxes_on_image(image, vp_index, vp_dir, aoi_heights_in_px, aoi_widths_in_px):
     # create Rectangles or for us called AoIs
     #
     #
@@ -150,39 +91,58 @@ def create_visual_bounding_boxes_on_image(image, VP_Index, vp_dir, AoI_Heights_i
     #                |                  |
     #               (xy)---- width -----+
     # Rectangles = (xy, width, height)
+    scaling_factor_height = user_input_dictionary["scaling_factor_height"]
+    middle_of_image = 0.5 * imageWidth_in_pixels
     rectangles = [
         # Rectangle( bottom left point X, Top left point Y,
         #              width, height, color, filling, label)
         # head
-        patches.Rectangle((0.5 * imageWidth_in_pixels - (AoI_Widths_in_px[0] * 0.5), AoI_Heights_in_px[0]),
-                          AoI_Widths_in_px[0], 22 * 7.37 * 0.5, edgecolor='r', facecolor="none", label="head"),
+        # Explanation:
+        # Rectangles = (xy, width, height)
+        # x = From the middle of the image (where the middle of the user should be located) we subtract
+        #             half of the aoi widths (since half the width gives us the starting point)
+        # y = The first aoi height position. This gives us the Tupple xy
+        # width = The first calculated aoi width in px
+        # height = 22 (avg. head height see paper) * scaling factor (gives us the pixel height) * 0.5 (intercept theorem)
+        #                           same idea as in method calculate_heights_for_area_of_interest_positions()
+        patches.Rectangle((middle_of_image - (aoi_widths_in_px[0] * 0.5), aoi_heights_in_px[0]),
+                          aoi_widths_in_px[0], 22 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                          label="head"),
 
         # right hand
-        patches.Rectangle((0.5 * imageWidth_in_pixels - ((AoI_Widths_in_px[3] + 30) * 0.5), AoI_Heights_in_px[1]),
-                          AoI_Widths_in_px[1], 17 * 7.37 * 0.5, edgecolor='r', facecolor="none", label="right_hand"),
+        # Without the addition after the height position hand bounding boxes would be way to low
+        # We add half of the average feet height since in the image the verse are higher than the toes
+        # and technically we need to measure from the point zero but it gets very complicated here
+        patches.Rectangle((middle_of_image - ((user_input_dictionary["user_width_px"] + 30) * 0.5),
+                           aoi_heights_in_px[1] + (22 * scaling_factor_height * 0.5) * 0.5),
+                          aoi_widths_in_px[1], 17 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                          label="right_hand"),
 
         # left hand
-        patches.Rectangle((0.5 * imageWidth_in_pixels + ((AoI_Widths_in_px[3] - 30) * 0.5), AoI_Heights_in_px[1]),
-                          AoI_Widths_in_px[1], 17 * 7.37 * 0.5, edgecolor='r', facecolor="none", label="left_hand"),
+        patches.Rectangle((0.5 * imageWidth_in_pixels + ((user_input_dictionary["user_width_px"] - 30) * 0.5),
+                           aoi_heights_in_px[1] + (22 * scaling_factor_height * 0.5) * 0.5),
+                          aoi_widths_in_px[1], 17 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                          label="left_hand"),
 
         # Feet
-        patches.Rectangle((0.5 * (imageWidth_in_pixels - AoI_Widths_in_px[2]), AoI_Heights_in_px[2]),
-                          AoI_Widths_in_px[2], 22 * 7.37 * 0.5, edgecolor='r', facecolor="none", label="feet"),
+        patches.Rectangle((middle_of_image - (aoi_widths_in_px[2] * 0.5), aoi_heights_in_px[2]),
+                          aoi_widths_in_px[2], 22 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                          label="feet"),
 
-        # Test
-        #patches.Rectangle((0.5 * imageWidth_in_pixels + 50, AoI_Heights_in_px[0]),
-                          #AoI_Widths_in_px[2], 22 * scaling_factor_height * 0.5, edgecolor='g', facecolor="none",
-                          #label="x")
+        # Add here another rectangle for another boundingbox
+        # patches.Rectangle((middle_of_image - (aoi_widths_in_px[x] * 0.5), aoi_heights_in_px[x]),
+        #                 aoi_widths_in_px[x], your_avg_aoi_height * scaling_factor_height * 0.5, edgecolor='r',
+        #                 facecolor="none", label="youraoi"),
     ]
     figure, ax = plt.subplots(1)
-    boundingBoxes = []
+    bounding_boxes = []
     image = image[::-1, :, :]  # flip image for better processing
 
     # Draw Rectangle on to the image
     # Add Boundingbox information to boundingbox array for later usage
     for rects in rectangles:
         ax.add_patch(rects)
-        boundingBoxes.append([rects.get_label(), rects.get_bbox()])
+        bounding_boxes.append([rects.get_label(), rects.get_bbox()])
         print("Name of created Area of Interest: " + rects.get_label())
         print('{0} height px: {1} and width: {2}'.format(rects.get_label(), rects.get_height(), rects.get_width()))
     # Customize plot
@@ -191,26 +151,32 @@ def create_visual_bounding_boxes_on_image(image, VP_Index, vp_dir, AoI_Heights_i
 
     # Save Image with bounding boxes
     save_location_path = os.path.join(vp_dir,
-                                      condition + "_BoundingBoxes_VP" + str(VP_Index) + ".png")
+                                      user_input_dictionary["Condition"] + "_BoundingBoxes_VP" + str(vp_index) + ".png")
     print("Figure saved in: {}".format(save_location_path))
     plt.savefig(save_location_path)
 
     # Show plot again for fast prototyping
     plt.show()
 
-    return boundingBoxes, save_location_path, rectangles
+    return bounding_boxes, save_location_path, rectangles
 
 
 # Calculate the height of the AoI in pixels on the reference
 def calculate_heights_for_area_of_interest_positions(image_height, mirror_height, eye_height_in_px, eye_height,
-                                                     head_height,
-                                                     hands_height, feet_height):
-    global scaling_factor_height
+                                                     aoi_heights):
+    aoi_diffs = []
     aoi_positions = []
     # Calculate the scaling Factor. => 1CM in the real world equal x px on the Image
     scaling_factor = image_height / mirror_height
-    scaling_factor_height = scaling_factor  # update  global variable for usage outside method
+    user_input_dictionary["scaling_factor_height"] = scaling_factor
     print("Scaling factor height : " + str(scaling_factor))
+
+    for i in aoi_heights:
+        aoi_diffs.append(user_input_dictionary["Eye_Height"] - i)
+    for j in aoi_diffs:
+        aoi_positions.append(eye_height_in_px - (j * scaling_factor * 0.5))
+
+    """ Below old code for our specific AoIs. The above one is more friendly to extentions of our system
     # Calculate centimeter differences of the AoIs from eyes
     diff_eye_head = eye_height - head_height
     diff_eye_hands = eye_height - hands_height
@@ -223,28 +189,30 @@ def calculate_heights_for_area_of_interest_positions(image_height, mirror_height
     head_height_px = eye_height_in_px - diff_eye_head_in_px
     hands_height_px = eye_height_in_px - diff_eye_hands_in_px
     feet_height_px = eye_height_in_px - diff_eye_feet_in_px
-    aoi_positions.extend([head_height_px, hands_height_px, feet_height_px])
-
+    aoi_positions2.extend([head_height_px, hands_height_px, feet_height_px])
+    """
     return aoi_positions
 
 
-def calculate_widths_for_area_of_interest_positions(image_width, mirror_width, head_width, hands_width, feet_width,
-                                                    user_width):
-    global scale_f_w
-    AoI_Width_Positions = []
+def calculate_widths_for_area_of_interest_positions(image_width, mirror_width, user_width, aoi_widths):
+    aoi_width_positions = []
     # Calculate scaling factor
     scaling_factor = image_width / mirror_width
-    scale_f_w = scaling_factor
+    user_input_dictionary["scaling_factor_width"] = scaling_factor
     print("Scaling factor w : " + str(scaling_factor))
     # Calculate width of the AoI all in Pxs
+    for i in aoi_widths:
+        aoi_width_positions.append(i * scaling_factor)
+    user_input_dictionary["user_width_px"] = user_width * scaling_factor
+    """ Below again old code for our specific usecase
     head_width = head_width * scaling_factor
     hands_width = hands_width * scaling_factor
     feet_width = feet_width * scaling_factor
     user_width = user_width * scaling_factor
     # Add to array
-    AoI_Width_Positions.extend([head_width, hands_width, feet_width, user_width])
-
-    return AoI_Width_Positions
+    aoi_width_positions.extend([head_width, hands_width, feet_width, user_width])
+    """
+    return aoi_width_positions
 
 
 def normalize_bounding_box_positions(boundingBoxes):
@@ -259,20 +227,34 @@ def normalize_bounding_box_positions(boundingBoxes):
 
 # Start of pipeline
 user_input_dictionary, input_file = read_in_user_specific_data('Input\\User_Specific_Data.txt')
-update_user_variable(user_input_dictionary)
-vp_result_dir = create_results_folder(vp_Index, input_file)
+vp_index = int(user_input_dictionary["VP_Index"])
+vp_result_dir = create_results_folder(vp_index, input_file)
 imageHeight_in_pixels, imageWidth_in_pixels, image = read_in_user_image()
-eye_height_in_px = transform_centimeters_to_pixels(eye_height - distance_mirror_to_ground, isHeight=True)
-aoi_heights_in_px = calculate_heights_for_area_of_interest_positions(imageHeight_in_pixels, image_height_in_cm,
+eye_height_in_px = transform_centimeters_to_pixels(user_input_dictionary["Eye_Height"] -
+                                                   user_input_dictionary["Distance_Mirror_Ground"],
+                                                   user_input_dictionary["Mirror_Height"],
+                                                   imageHeight_in_pixels,
+                                                   user_input_dictionary["Mirror_Width"], imageWidth_in_pixels,
+                                                   isHeight=True)
+# add all relevant aoi heights to a list
+aoi_heights = [user_input_dictionary["Head_Height"],
+               user_input_dictionary["Hands_Height"], user_input_dictionary["Feet_Height"]]
+aoi_widths = [user_input_dictionary["Head_Width"], user_input_dictionary["Hands_Width"],
+              user_input_dictionary["Feet_Width"]]
+# Calculate pixel values from cms for both height and width
+aoi_heights_in_px = calculate_heights_for_area_of_interest_positions(imageHeight_in_pixels, user_input_dictionary["Mirror_Height"],
                                                                      eye_height_in_px,
-                                                                     eye_height, head_height, hands_height, feet_height)
-aoi_widths_in_px = calculate_widths_for_area_of_interest_positions(imageWidth_in_pixels, image_width_in_cm, head_width,
-                                                                   hands_width, feet_width, user_width)
-
-boundingBoxes, image_with_bb, rectangles = create_visual_bounding_boxes_on_image(image, vp_Index, vp_result_dir,
+                                                                     user_input_dictionary["Eye_Height"], aoi_heights)
+aoi_widths_in_px = calculate_widths_for_area_of_interest_positions(imageWidth_in_pixels, user_input_dictionary["Mirror_Width"],
+                                                                   user_input_dictionary["User_Width"], aoi_widths)
+# Create visual bounding boxes
+boundingBoxes, image_with_bb, rectangles = create_visual_bounding_boxes_on_image(image,
+                                                                                 vp_index,
+                                                                                 vp_result_dir,
                                                                                  aoi_heights_in_px, aoi_widths_in_px)
 normalize_bounding_box_positions(boundingBoxes)
 
 # Call Fixation Detector with created Bounding Boxes
-Fixation_Calculator.start_fixation_calculation(fixation_filename, boundingBoxes, vp_image, image_with_bb,
-                                               vp_Index, start_time)
+Fixation_Calculator.start_fixation_calculation(user_input_dictionary["Fixation_Filename"], boundingBoxes,
+                                               user_input_dictionary["VP_Image"], image_with_bb,
+                                               vp_index, user_input_dictionary["Start_time"])

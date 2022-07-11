@@ -127,7 +127,7 @@ def explorationPhaseDataProcessing(df_explo1, df_explo2):
     return dfExplo1res, dfExplo2res
 
 
-def create_heatmap(x, y, image, image_with_bb, vp_ndex):
+def create_heatmap(x, y, image, image_with_bb, vp_index):
     # Construct 2D histogram from data using the 'plasma' colormap
     plt.hist2d(x, y, bins=15, range=[[0, 1], [0, 1]], density=True, cmap='plasma')
 
@@ -144,7 +144,7 @@ def create_heatmap(x, y, image, image_with_bb, vp_ndex):
     plt.imshow(map_img, zorder=0)
 
     plt.savefig(os.path.join(os.path.dirname(image_with_bb),
-                             "Heatmap_VP" + str(vp_ndex) + ".png"))
+                             "Heatmap_VP" + str(vp_index) + ".png"))
 
     plt.show()
 
