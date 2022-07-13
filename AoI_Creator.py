@@ -49,17 +49,13 @@ def create_results_folder(vp_index, input_file):
 
 
 # transform the measured centimeter values to pixel values on our reference image
-def transform_centimeters_to_pixels(value, image_height_in_cm, image_height_in_px, image_width_in_cm, image_width_in_px,
-                                    isHeight):
+def transform_centimeters_to_pixels(value, mirror_value_in_cm, mirror_value_in_px):
     if (value is 0):
         return
-    if (isHeight):
-        height_in_pixel = image_height_in_px / image_height_in_cm * value
-        print(image_height_in_px / image_height_in_cm)
-        return height_in_pixel
-    else:
-        width_in_pixel = image_width_in_px / image_width_in_cm * value
-        return width_in_pixel
+    transformed_value = mirror_value_in_px / mirror_value_in_cm * value
+    print(mirror_value_in_px / mirror_value_in_cm)
+    return transformed_value
+
 
 
 def read_in_user_image():
@@ -162,17 +158,20 @@ def create_visual_bounding_boxes_on_image(image, vp_index, vp_dir, aoi_heights_i
 
 
 # Calculate the height of the AoI in pixels on the reference
-def calculate_heights_for_area_of_interest_positions(image_height, mirror_height, eye_height_in_px, eye_height,
+def calculate_heights_for_area_of_interest_positions(image_height, eye_height_in_px,
                                                      aoi_heights):
     aoi_diffs = []
     aoi_positions = []
+    mirror_height = user_input_dictionary["Mirror_Height"]
+    eye_height = user_input_dictionary["Eye_Height"]
+
     # Calculate the scaling Factor. => 1CM in the real world equal x px on the Image
     scaling_factor = image_height / mirror_height
     user_input_dictionary["scaling_factor_height"] = scaling_factor
     print("Scaling factor height : " + str(scaling_factor))
 
     for i in aoi_heights:
-        aoi_diffs.append(user_input_dictionary["Eye_Height"] - i)
+        aoi_diffs.append(eye_height - i)
     for j in aoi_diffs:
         aoi_positions.append(eye_height_in_px - (j * scaling_factor * 0.5))
 
@@ -194,8 +193,10 @@ def calculate_heights_for_area_of_interest_positions(image_height, mirror_height
     return aoi_positions
 
 
-def calculate_widths_for_area_of_interest_positions(image_width, mirror_width, user_width, aoi_widths):
+def calculate_widths_for_area_of_interest_positions(image_width, aoi_widths):
     aoi_width_positions = []
+    mirror_width = user_input_dictionary["Mirror_Width"]
+    user_width = user_input_dictionary["User_Width"]
     # Calculate scaling factor
     scaling_factor = image_width / mirror_width
     user_input_dictionary["scaling_factor_width"] = scaling_factor
@@ -204,6 +205,7 @@ def calculate_widths_for_area_of_interest_positions(image_width, mirror_width, u
     for i in aoi_widths:
         aoi_width_positions.append(i * scaling_factor)
     user_input_dictionary["user_width_px"] = user_width * scaling_factor
+
     """ Below again old code for our specific usecase
     head_width = head_width * scaling_factor
     hands_width = hands_width * scaling_factor
@@ -233,28 +235,25 @@ imageHeight_in_pixels, imageWidth_in_pixels, image = read_in_user_image()
 eye_height_in_px = transform_centimeters_to_pixels(user_input_dictionary["Eye_Height"] -
                                                    user_input_dictionary["Distance_Mirror_Ground"],
                                                    user_input_dictionary["Mirror_Height"],
-                                                   imageHeight_in_pixels,
-                                                   user_input_dictionary["Mirror_Width"], imageWidth_in_pixels,
-                                                   isHeight=True)
+                                                   imageHeight_in_pixels)
+
 # add all relevant aoi heights to a list
 aoi_heights = [user_input_dictionary["Head_Height"],
                user_input_dictionary["Hands_Height"], user_input_dictionary["Feet_Height"]]
 aoi_widths = [user_input_dictionary["Head_Width"], user_input_dictionary["Hands_Width"],
               user_input_dictionary["Feet_Width"]]
 # Calculate pixel values from cms for both height and width
-aoi_heights_in_px = calculate_heights_for_area_of_interest_positions(imageHeight_in_pixels, user_input_dictionary["Mirror_Height"],
-                                                                     eye_height_in_px,
-                                                                     user_input_dictionary["Eye_Height"], aoi_heights)
-aoi_widths_in_px = calculate_widths_for_area_of_interest_positions(imageWidth_in_pixels, user_input_dictionary["Mirror_Width"],
-                                                                   user_input_dictionary["User_Width"], aoi_widths)
+aoi_heights_in_px = calculate_heights_for_area_of_interest_positions(imageHeight_in_pixels,
+                                                                     eye_height_in_px, aoi_heights)
+aoi_widths_in_px = calculate_widths_for_area_of_interest_positions(imageWidth_in_pixels,  aoi_widths)
 # Create visual bounding boxes
 boundingBoxes, image_with_bb, rectangles = create_visual_bounding_boxes_on_image(image,
                                                                                  vp_index,
                                                                                  vp_result_dir,
                                                                                  aoi_heights_in_px, aoi_widths_in_px)
 normalize_bounding_box_positions(boundingBoxes)
-
 # Call Fixation Detector with created Bounding Boxes
 Fixation_Calculator.start_fixation_calculation(user_input_dictionary["Fixation_Filename"], boundingBoxes,
                                                user_input_dictionary["VP_Image"], image_with_bb,
                                                vp_index, user_input_dictionary["Start_time"])
+
