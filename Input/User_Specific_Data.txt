@@ -4,20 +4,24 @@ Distance_User_Mirror:140
 Mirror_Height:112
 Mirror_Width:59.3
 
-# User
-User_Height:173
+# User Every AoI has 3 Parameters: The Height_Pos (measured from ground) and a height and width for the boundingboxes in cm
+User_Height:176
 User_Width: 18
-Eye_Height:163
-Head_Height: 151
+Eye_Height:166
+Head_Height_Pos: 154
+Head_Height: 22
 Head_Width: 15
-Hands_Height: 64
+Hands_Height_Pos: 69
+Hands_Height: 19
 Hands_Width: 8
-Feet_Height: 0
-Feet_Width: 18
+Feet_Height_Pos: 0
+Feet_Height: 23
+Feet_Width: 19
+
 
 # Other
-VP_Image:VP03_Real.png
+VP_Image:Participant_image.png
 Fixation_Filename:fixations_on_surface_Surface 1.csv
 VP_Index:3
 Condition: Real
-Start_time: 220
+Start_time: 100

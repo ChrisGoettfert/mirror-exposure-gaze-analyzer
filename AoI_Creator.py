@@ -57,7 +57,6 @@ def transform_centimeters_to_pixels(value, mirror_value_in_cm, mirror_value_in_p
     return transformed_value
 
 
-
 def read_in_user_image():
     # read in image
     img = mpimg.imread("Input\\" + user_input_dictionary["VP_Image"])
@@ -89,9 +88,12 @@ def create_visual_bounding_boxes_on_image(image, vp_index, vp_dir, aoi_heights_i
     # Rectangles = (xy, width, height)
     scaling_factor_height = user_input_dictionary["scaling_factor_height"]
     middle_of_image = 0.5 * imageWidth_in_pixels
+    # Get measured heights of the body parts for our bounding boxes
+    boundingbox_height_head = user_input_dictionary["Head_Height"]
+    boundingbox_height_hands = user_input_dictionary["Hands_Height"]
+    boundingbox_height_feet = user_input_dictionary["Feet_Height"]
     rectangles = [
-        # Rectangle( bottom left point X, Top left point Y,
-        #              width, height, color, filling, label)
+        # Rectangle( xy, width, height, color, filling, label)
         # head
         # Explanation:
         # Rectangles = (xy, width, height)
@@ -102,7 +104,8 @@ def create_visual_bounding_boxes_on_image(image, vp_index, vp_dir, aoi_heights_i
         # height = 22 (avg. head height see paper) * scaling factor (gives us the pixel height) * 0.5 (intercept theorem)
         #                           same idea as in method calculate_heights_for_area_of_interest_positions()
         patches.Rectangle((middle_of_image - (aoi_widths_in_px[0] * 0.5), aoi_heights_in_px[0]),
-                          aoi_widths_in_px[0], 22 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                          aoi_widths_in_px[0], boundingbox_height_head * scaling_factor_height * 0.5, edgecolor='r',
+                          facecolor="none",
                           label="head"),
 
         # right hand
@@ -110,19 +113,22 @@ def create_visual_bounding_boxes_on_image(image, vp_index, vp_dir, aoi_heights_i
         # We add half of the average feet height since in the image the verse are higher than the toes
         # and technically we need to measure from the point zero but it gets very complicated here
         patches.Rectangle((middle_of_image - ((user_input_dictionary["user_width_px"] + 30) * 0.5),
-                           aoi_heights_in_px[1] + (22 * scaling_factor_height * 0.5) * 0.5),
-                          aoi_widths_in_px[1], 17 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                           aoi_heights_in_px[1] + (boundingbox_height_feet * scaling_factor_height * 0.5) * 0.5),
+                          aoi_widths_in_px[1], boundingbox_height_hands * scaling_factor_height * 0.5, edgecolor='r',
+                          facecolor="none",
                           label="right_hand"),
 
         # left hand
         patches.Rectangle((0.5 * imageWidth_in_pixels + ((user_input_dictionary["user_width_px"] - 30) * 0.5),
-                           aoi_heights_in_px[1] + (22 * scaling_factor_height * 0.5) * 0.5),
-                          aoi_widths_in_px[1], 17 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                           aoi_heights_in_px[1] + (boundingbox_height_feet * scaling_factor_height * 0.5) * 0.5),
+                          aoi_widths_in_px[1], boundingbox_height_hands * scaling_factor_height * 0.5, edgecolor='r',
+                          facecolor="none",
                           label="left_hand"),
 
         # Feet
         patches.Rectangle((middle_of_image - (aoi_widths_in_px[2] * 0.5), aoi_heights_in_px[2]),
-                          aoi_widths_in_px[2], 22 * scaling_factor_height * 0.5, edgecolor='r', facecolor="none",
+                          aoi_widths_in_px[2], boundingbox_height_feet * scaling_factor_height * 0.5, edgecolor='r',
+                          facecolor="none",
                           label="feet"),
 
         # Add here another rectangle for another boundingbox
@@ -238,14 +244,14 @@ eye_height_in_px = transform_centimeters_to_pixels(user_input_dictionary["Eye_He
                                                    imageHeight_in_pixels)
 
 # add all relevant aoi heights to a list
-aoi_heights = [user_input_dictionary["Head_Height"],
-               user_input_dictionary["Hands_Height"], user_input_dictionary["Feet_Height"]]
+aoi_heights = [user_input_dictionary["Head_Height_Pos"],
+               user_input_dictionary["Hands_Height_Pos"], user_input_dictionary["Feet_Height_Pos"]]
 aoi_widths = [user_input_dictionary["Head_Width"], user_input_dictionary["Hands_Width"],
               user_input_dictionary["Feet_Width"]]
 # Calculate pixel values from cms for both height and width
 aoi_heights_in_px = calculate_heights_for_area_of_interest_positions(imageHeight_in_pixels,
                                                                      eye_height_in_px, aoi_heights)
-aoi_widths_in_px = calculate_widths_for_area_of_interest_positions(imageWidth_in_pixels,  aoi_widths)
+aoi_widths_in_px = calculate_widths_for_area_of_interest_positions(imageWidth_in_pixels, aoi_widths)
 # Create visual bounding boxes
 boundingBoxes, image_with_bb, rectangles = create_visual_bounding_boxes_on_image(image,
                                                                                  vp_index,
@@ -256,4 +262,3 @@ normalize_bounding_box_positions(boundingBoxes)
 Fixation_Calculator.start_fixation_calculation(user_input_dictionary["Fixation_Filename"], boundingBoxes,
                                                user_input_dictionary["VP_Image"], image_with_bb,
                                                vp_index, user_input_dictionary["Start_time"])
-

@@ -17,7 +17,6 @@ exploration_dataframes = []
 def read_in_fixation_data(fixations_filename):
     # read in data
     df = pd.read_csv(fixations_filename)
-
     # drop all rows where fixation is not on surface
     df = df.loc[df['on_surf'] == True]
     # delete unneccessary columns from dataframe
@@ -217,23 +216,6 @@ def create_scatterplots_on_image(df_all, image, image_with_bb, vp_index):
         Scatterplot_on_Image.draw_scatterplot_on_image(i[0], image, image_with_bb, vp_index, i[1])
 
 
-def start_fixation_calculation(fixations_filename, boundingboxes, image, image_with_bb, vp_index,
-                               start_time):
-    image = "Input\\" + image
-    fixations_filename = "Input\\" + fixations_filename
-    print("Processing fixations in file: " + fixations_filename)
-
-    df, x_positions, y_positions = read_in_fixation_data(fixations_filename)
-    results_list, df = calculate_fixations_on_aois(boundingboxes, df, aoi_fixation_lists)
-
-    perform_timestamp_based_calculations(df, start_time, boundingboxes)
-    save_results_in_logfile(results_list, image_with_bb, average_errors, fixations_during_timephases,
-                            exploration_dataframes[0], exploration_dataframes[1])
-
-    create_heatmap(df['norm_pos_x'], df['norm_pos_y'], image, image_with_bb, vp_index)
-    create_scatterplots_on_image(df, image, image_with_bb, vp_index)
-
-
 # Cut Dataframe by seconds based on the audioinstructions
 def split_dataframes_by_timestamps(df, start_time):
     # Start at 14 since instruction was 14 seconds long. 84 = end of audio file
@@ -257,6 +239,23 @@ def split_dataframes_by_timestamps(df, start_time):
     df_explorative2 = df.loc[mask_explorative2]
 
     return df_all, df_explorative1, df_head, df_left_hand, df_right_hand, df_feet, df_explorative2
+
+
+def start_fixation_calculation(fixations_filename, boundingboxes, image, image_with_bb, vp_index,
+                               start_time):
+    image = "Input\\" + image
+    fixations_filename = "Input\\" + fixations_filename
+    print("Processing fixations in file: " + fixations_filename)
+
+    df, x_positions, y_positions = read_in_fixation_data(fixations_filename)
+    results_list, df = calculate_fixations_on_aois(boundingboxes, df, aoi_fixation_lists)
+
+    perform_timestamp_based_calculations(df, start_time, boundingboxes)
+    save_results_in_logfile(results_list, image_with_bb, average_errors, fixations_during_timephases,
+                            exploration_dataframes[0], exploration_dataframes[1])
+
+    create_heatmap(df['norm_pos_x'], df['norm_pos_y'], image, image_with_bb, vp_index)
+    create_scatterplots_on_image(df, image, image_with_bb, vp_index)
 
 
 if __name__ == '__main__':
