@@ -1,0 +1,2 @@
+# mirror-exposure-gaze-analyzer
+This repository shows an implementation for analyzing gaze behavior of a person in a mirror exposure task. This tool allows to define visual bounding boxes derived from measured body data on a mirror image of a person. Together with gaze data from pupil lab eye trackers, it is then possible to analyze gaze behavior. The repository provides the code to the paper: link and includes the sample implementation for the study at that time with the Areas of Interest: head, left hand, right hand, and feet. For more information please read the paper. 
