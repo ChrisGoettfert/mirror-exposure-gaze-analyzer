@@ -14,6 +14,20 @@ This repository shows an implementation for analyzing gaze behavior of a person 
 - Exact documentation will follow. There are some hints in the code where to edit values.
 
 
+## Paper
+https://downloads.hci.informatik.uni-wuerzburg.de/2022-muc-eyetracking_in_mirror_exposition-preprint.pdf
+
+## Reference
+When using this Framework please reference: 
+````latex
+@inproceedings{dollinger2022eyetracking,
+  title        = {Analyzing Eye Tracking Data in Mirror Exposure},
+  author       = {Döllinger, Nina and Göttfert, Christopher and Wolf, Erik and Mal, David and Latoschik, Marc Erich and Wienrich, Carolin},
+  booktitle    = {Proceedings of the Conference on Mensch und Computer},
+  year         = {2022},
+  url          = {https://downloads.hci.informatik.uni-wuerzburg.de/2022-muc-eyetracking_in_mirror_exposition-preprint.pdf}
+}
+````
 
 ## Main Contributors
 
